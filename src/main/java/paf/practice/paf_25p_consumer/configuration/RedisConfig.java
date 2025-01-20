@@ -1,5 +1,6 @@
 package paf.practice.paf_25p_consumer.configuration;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,13 +11,16 @@ import org.springframework.data.redis.connection.jedis.JedisClientConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.ChannelTopic;
+import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 import paf.practice.paf_25p_consumer.service.ConsumerService;
 
 @Configuration
+@EnableAsync
 public class RedisConfig {
     @Value("${spring.data.redis.host}")
     private String redisHost;
@@ -61,18 +65,30 @@ public class RedisConfig {
         return new ChannelTopic("messages");
     }
 
-    @Bean
-    public MessageListenerAdapter listenerAdapter(ConsumerService service) {
+    // Abstracted to interface to allow Spring to handle async.
+    @Bean("messagesAdapter")
+    public MessageListenerAdapter listenerAdapter(@Qualifier("messagesService") MessageListener service) {
+        MessageListenerAdapter adapter = new MessageListenerAdapter(service);
+        adapter.setSerializer(new StringRedisSerializer());
+        return adapter;
+    }
+
+    @Bean("greetingsAdapter")
+    public MessageListenerAdapter greetingsAdapter(@Qualifier("greetingsService") MessageListener service) {
         MessageListenerAdapter adapter = new MessageListenerAdapter(service);
         adapter.setSerializer(new StringRedisSerializer());
         return adapter;
     }
 
     @Bean
-    public RedisMessageListenerContainer listenerContainer(ChannelTopic topic, MessageListenerAdapter adapter, RedisConnectionFactory connectionFactory) {
+    public RedisMessageListenerContainer listenerContainer(ChannelTopic topic, 
+            @Qualifier("messagesAdapter") MessageListenerAdapter adapter, 
+            @Qualifier("greetingsAdapter") MessageListenerAdapter adapter2, 
+            RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(adapter, topic);
+        container.addMessageListener(adapter2, new PatternTopic("greetings"));
         return container;
     }
 }
