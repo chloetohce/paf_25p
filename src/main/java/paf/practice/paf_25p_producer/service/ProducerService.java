@@ -15,7 +15,7 @@ public class ProducerService {
     @Qualifier("topic1")
     private ChannelTopic topic1;
 
-    public void sendMessage(String msg) {
-        template.convertAndSend(topic1.getTopic(), msg);
+    public void sendMessage(String msg, String channel) {
+        template.convertAndSend(channel, msg);
     }
 }

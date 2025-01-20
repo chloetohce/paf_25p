@@ -53,6 +53,6 @@ public class RedisConfig {
 
     @Bean("topic1")
     public ChannelTopic topic() {
-        return new ChannelTopic("messages");
+        return new ChannelTopic("greetings");
     }
 }

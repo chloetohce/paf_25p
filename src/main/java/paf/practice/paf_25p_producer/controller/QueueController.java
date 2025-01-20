@@ -20,11 +20,11 @@ public class QueueController {
 
     @PostMapping("/messages")
     public ResponseEntity<String> sendMessage(@RequestBody List<String> messages) {
-        for (String m : messages) {
-            service.sendMessage(m);
+        for (int i = 0; i < messages.size(); i++) {
+            service.sendMessage(messages.get(i), i % 2 == 0 ? "dispatch1" : "dispatch2");
         }
         
-        return ResponseEntity.ok().body("Messagge sent.");
+        return ResponseEntity.ok().body("Message sent.");
     }
     
 }
