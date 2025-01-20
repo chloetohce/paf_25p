@@ -80,15 +80,25 @@ public class RedisConfig {
         return adapter;
     }
 
+    @Bean("dispatcherAdapater")
+    public MessageListenerAdapter dispatcherAdapter(@Qualifier("dispatcherService") MessageListener service) {
+        MessageListenerAdapter adapter = new MessageListenerAdapter(service);
+        adapter.setSerializer(new StringRedisSerializer());
+        return adapter;
+    }
+
     @Bean
     public RedisMessageListenerContainer listenerContainer(ChannelTopic topic, 
             @Qualifier("messagesAdapter") MessageListenerAdapter adapter, 
             @Qualifier("greetingsAdapter") MessageListenerAdapter adapter2, 
+            @Qualifier("dispatcherAdapater") MessageListenerAdapter adapter3,
             RedisConnectionFactory connectionFactory) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(adapter, topic);
         container.addMessageListener(adapter2, new PatternTopic("greetings"));
+        container.addMessageListener(adapter3, new PatternTopic("dispatch1"));
+        container.addMessageListener(adapter3, new PatternTopic("dispatch2"));
         return container;
     }
 }
