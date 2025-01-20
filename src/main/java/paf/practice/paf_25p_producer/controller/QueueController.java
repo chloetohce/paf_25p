@@ -1,5 +1,7 @@
 package paf.practice.paf_25p_producer.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,8 +19,11 @@ public class QueueController {
     private ProducerService service;
 
     @PostMapping("/messages")
-    public ResponseEntity<String> sendMessage(@RequestBody String msg) {
-        service.sendMessage(msg);
+    public ResponseEntity<String> sendMessage(@RequestBody List<String> messages) {
+        for (String m : messages) {
+            service.sendMessage(m);
+        }
+        
         return ResponseEntity.ok().body("Messagge sent.");
     }
     
